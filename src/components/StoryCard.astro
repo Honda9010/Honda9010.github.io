@@ -1,0 +1,22 @@
+---
+import { formatDate, sectionNames, storyUrl, type Album, type Story } from '../lib/content';
+import ResponsivePhoto from './ResponsivePhoto.astro';
+
+interface Props { story: Story; album?: Album }
+const { story, album } = Astro.props;
+const { title, description, section, date, demo } = story.data;
+const cover = story.data.cover ?? album?.data.photos[0];
+---
+
+<article class="story-card">
+  <a href={storyUrl(story)}>
+    {cover && <div class="story-cover">
+      <ResponsivePhoto image={cover.image} alt={cover.alt} sizes="(min-width: 850px) 30vw, (min-width: 620px) 46vw, 92vw" />
+    </div>}
+    <div class="story-card-body">
+      <p class="meta">{sectionNames[section]} <span aria-hidden="true">·</span> <time datetime={date.toISOString()}>{formatDate(date)}</time>{demo && ' · 示例'}</p>
+      <h3>{title} <span aria-hidden="true">↗</span></h3>
+      <p>{description}</p>
+    </div>
+  </a>
+</article>

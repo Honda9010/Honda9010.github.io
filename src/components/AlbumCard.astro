@@ -1,0 +1,22 @@
+---
+import { albumUrl, type Album } from '../lib/content';
+import ResponsivePhoto from './ResponsivePhoto.astro';
+
+interface Props { album: Album }
+const { album } = Astro.props;
+const { title, location, theme, photos, demo } = album.data;
+const cover = photos[0];
+---
+
+<a class="album-card" href={albumUrl(album)}>
+  <div class="album-cover">
+    <ResponsivePhoto image={cover.image} alt={cover.alt} sizes="(min-width: 850px) 46vw, 94vw" />
+  </div>
+  <div class="album-card-body">
+    <div>
+      <p class="meta">{location} <span aria-hidden="true">/</span> {theme}{demo && ' / 示例'}</p>
+      <h3>{title}</h3>
+    </div>
+    <span class="album-count">{photos.length} 张 <span aria-hidden="true">↗</span></span>
+  </div>
+</a>

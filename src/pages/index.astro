@@ -1,0 +1,53 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ResponsivePhoto from '../components/ResponsivePhoto.astro';
+import AlbumCard from '../components/AlbumCard.astro';
+import StoryCard from '../components/StoryCard.astro';
+import { getJournal, sectionNames, siteName, storyUrl } from '../lib/content';
+
+const { albums, stories, albumsById } = await getJournal();
+const featured = stories.find((story) => story.data.featured) ?? stories[0];
+const leadAlbum = featured?.data.album && albumsById.get(featured.data.album.id);
+const leadPhoto = featured?.data.cover ?? leadAlbum?.data.photos[0];
+const leadCredit = leadAlbum?.data.photos.find((photo) => photo.image.src === leadPhoto?.image.src)?.credit;
+const selectedAlbums = albums.filter((album) => album.data.featured).slice(0, 4);
+const recent = stories.filter((story) => story.id !== featured?.id).slice(0, 3);
+---
+
+<SiteLayout>
+  {featured ? (
+    <section class:list={['hero shell', { 'hero-text-only': !leadPhoto }]} aria-labelledby="lead-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span>精选{sectionNames[featured.data.section]}{featured.data.demo && ' / 示例'}</p>
+        <h1 id="lead-title">{featured.data.title}</h1>
+        <p class="hero-description">{featured.data.description}</p>
+        {leadAlbum && <p class="hero-place">{leadAlbum.data.location}</p>}
+        <a class="button" href={storyUrl(featured)}>阅读{sectionNames[featured.data.section]} <span aria-hidden="true">↗</span></a>
+      </div>
+      {leadPhoto && <figure class="hero-media">
+        <ResponsivePhoto image={leadPhoto.image} alt={leadPhoto.alt} sizes="(min-width: 850px) 58vw, 100vw" eager />
+        {leadCredit && <figcaption><a href={leadCredit.url}>摄影 · {leadCredit.name}</a></figcaption>}
+      </figure>}
+    </section>
+  ) : <header class="page-heading shell"><h1>{siteName}</h1><p>摄影、游记与随笔。</p></header>}
+
+  {albums.length > 0 && <section class="home-section shell" aria-labelledby="featured-photos">
+    <div class="section-heading">
+      <h2 id="featured-photos">精选摄影</h2>
+      <a class="text-link" href="/photography/">浏览全部相册 <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="album-grid">
+      {(selectedAlbums.length ? selectedAlbums : albums.slice(0, 2)).map((album) => <AlbumCard {album} />)}
+    </div>
+  </section>}
+
+  {recent.length > 0 && <section class="home-section shell" aria-labelledby="recent-stories">
+    <div class="section-heading">
+      <h2 id="recent-stories">最近的图文故事</h2>
+      <a class="text-link" href="/travel/">浏览游记 <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="story-grid">
+      {recent.map((story) => <StoryCard {story} album={story.data.album && albumsById.get(story.data.album.id)} />)}
+    </div>
+  </section>}
+</SiteLayout>

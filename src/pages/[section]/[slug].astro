@@ -1,0 +1,42 @@
+---
+import { render } from 'astro:content';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import ResponsivePhoto from '../../components/ResponsivePhoto.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { albumUrl, formatDate, getJournal, sectionNames } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const { stories, albumsById } = await getJournal();
+  return stories.map((story) => ({
+    params: { section: story.data.section, slug: story.id },
+    props: { story, album: story.data.album && albumsById.get(story.data.album.id) },
+  }));
+}
+
+const { story, album } = Astro.props;
+const { Content } = await render(story);
+const { title, description, date, section, demo } = story.data;
+const cover = story.data.cover ?? album?.data.photos[0];
+const credit = album?.data.photos.find((photo) => photo.image.src === cover?.image.src)?.credit;
+---
+
+<SiteLayout {title} {description}>
+  <article class="shell page-section story-detail">
+    <header class="page-heading reading-width">
+      <a class="back-link" href={`/${section}/`}>← 返回{sectionNames[section]}</a>
+      <p class="meta"><time datetime={date.toISOString()}>{formatDate(date)}</time>{album && ` / ${album.data.location}`}{demo && ' / 示例图文'}</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </header>
+    {cover && <figure class="article-cover">
+      <ResponsivePhoto image={cover.image} alt={cover.alt} sizes="(min-width: 1050px) 980px, 94vw" eager />
+      {credit && <figcaption><a href={credit.url}>摄影 · {credit.name}</a></figcaption>}
+    </figure>}
+    <div class="prose reading-width"><Content /></div>
+    {album && <aside class="related-album reading-width" aria-label="对应相册">
+      <div><p class="meta">对应相册 · {album.data.photos.length} 张</p><h2>{album.data.title}</h2></div>
+      <a href={albumUrl(album)} class="button">查看完整相册 <span aria-hidden="true">↗</span></a>
+    </aside>}
+  </article>
+  <Lightbox />
+</SiteLayout>

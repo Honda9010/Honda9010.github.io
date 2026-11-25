@@ -1,0 +1,19 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import AlbumCard from '../../components/AlbumCard.astro';
+import { getJournal } from '../../lib/content';
+
+const { albums } = await getJournal();
+---
+
+<SiteLayout title="摄影" description="按地点和主题浏览摄影相册。">
+  <section class="shell page-section">
+    <header class="page-heading">
+      <h1>摄影</h1>
+      <p>按地点和主题浏览相册。</p>
+    </header>
+    {albums.length > 0 ? <div class="album-grid">
+      {albums.map((album) => <AlbumCard {album} />)}
+    </div> : <p>相册将在这里陆续更新。</p>}
+  </section>
+</SiteLayout>

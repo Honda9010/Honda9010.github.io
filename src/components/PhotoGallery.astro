@@ -1,0 +1,32 @@
+---
+import { renderPhoto } from '../lib/photos';
+import type { Photo } from '../lib/content';
+
+interface Props { photos: Photo[]; inStory?: boolean }
+const { photos, inStory = false } = Astro.props;
+const gridSizes = inStory ? '(min-width: 740px) 345px, 92vw' : '(min-width: 740px) 46vw, 92vw';
+const wideSizes = inStory ? '(min-width: 740px) 700px, 92vw' : '(min-width: 1440px) 1352px, 94vw';
+const images = await Promise.all(photos.map(async (photo, index) => {
+  const lastInOddAlbum = !inStory && photos.length % 2 === 1 && index === photos.length - 1;
+  return {
+    ...photo,
+    rendered: await renderPhoto(photo.image),
+    sizes: photos.length === 1 || lastInOddAlbum ? wideSizes : gridSizes,
+  };
+}));
+---
+
+<div class:list={['photo-gallery', { 'photo-gallery-story': inStory }]} aria-label="图集">
+  {images.map(({ image, rendered, alt, caption, credit, sizes }) => (
+    <figure>
+      <button type="button" class="photo-tile" aria-label={`放大照片：${alt}`}
+        data-full={rendered.full} data-caption={[caption, credit?.name].filter(Boolean).join(' · ')}>
+        <img src={rendered.src} srcset={rendered.srcset} {sizes} {alt} width={image.width} height={image.height}
+          loading="lazy" decoding="async" />
+      </button>
+      {(caption || credit) && <figcaption>
+        {caption}{caption && credit && ' · '}{credit && <a href={credit.url}>{credit.name}</a>}
+      </figcaption>}
+    </figure>
+  ))}
+</div>

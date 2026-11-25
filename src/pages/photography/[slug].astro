@@ -1,0 +1,35 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import PhotoGallery from '../../components/PhotoGallery.astro';
+import { getJournal, storyUrl } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const { albums, stories } = await getJournal();
+  return albums.map((album) => ({
+    params: { slug: album.id },
+    props: { album, travel: stories.filter((story) => story.data.section === 'travel' && story.data.album?.id === album.id) },
+  }));
+}
+
+const { album, travel } = Astro.props;
+const { title, description, location, theme, photos, demo } = album.data;
+---
+
+<SiteLayout {title} {description}>
+  <section class="shell page-section">
+    <header class="page-heading">
+      <a class="back-link" href="/photography/">← 返回摄影</a>
+      <p class="meta">{location} / {theme} / {photos.length} 张{demo && ' / 示例相册'}</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {travel.length > 0 && <div class="related-actions">
+        {travel.map((story) => <a class="button" href={storyUrl(story)}>
+          {travel.length === 1 ? '阅读游记' : `阅读游记 · ${story.data.title}`} <span aria-hidden="true">↗</span>
+        </a>)}
+      </div>}
+    </header>
+    <PhotoGallery {photos} />
+  </section>
+  <Lightbox />
+</SiteLayout>

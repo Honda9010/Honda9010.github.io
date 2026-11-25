@@ -1,0 +1,16 @@
+---
+import { getEntry } from 'astro:content';
+import PhotoGallery from './PhotoGallery.astro';
+
+interface Props { album: string; numbers: number[] }
+const { album, numbers } = Astro.props;
+const entry = await getEntry('albums', album);
+if (!entry) throw new Error(`图集引用的相册不存在：${album}`);
+const photos = numbers.map((number) => {
+  const photo = entry.data.photos[number - 1];
+  if (!photo) throw new Error(`相册 ${album} 中没有第 ${number} 张照片`);
+  return photo;
+});
+---
+
+<PhotoGallery {photos} inStory />

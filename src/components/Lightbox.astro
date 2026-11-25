@@ -1,0 +1,53 @@
+<dialog class="lightbox" aria-label="照片浏览器">
+  <button type="button" class="lightbox-close" data-close aria-label="关闭照片" autofocus>×</button>
+  <button type="button" class="lightbox-prev" data-prev aria-label="上一张">‹</button>
+  <figure>
+    <img alt="" />
+    <figcaption></figcaption>
+  </figure>
+  <button type="button" class="lightbox-next" data-next aria-label="下一张">›</button>
+</dialog>
+
+<script>
+  // Adapted from the Astro Photo Folio viewer. Native dialog confines focus.
+  const viewer = document.querySelector<HTMLDialogElement>('.lightbox');
+  const tiles = Array.from(document.querySelectorAll<HTMLButtonElement>('.photo-tile'));
+
+  if (viewer && tiles.length) {
+    const image = viewer.querySelector('img')!;
+    const caption = viewer.querySelector('figcaption')!;
+    let index = 0;
+    let opener: HTMLButtonElement | undefined;
+
+    function render(next: number) {
+      index = (next + tiles.length) % tiles.length;
+      const tile = tiles[index];
+      const thumbnail = tile.querySelector('img')!;
+      image.alt = thumbnail.alt;
+      image.sizes = '100vw';
+      image.srcset = thumbnail.srcset;
+      image.src = tile.dataset.full ?? thumbnail.src;
+      caption.textContent = tile.dataset.caption ?? '';
+    }
+
+    tiles.forEach((tile, position) => tile.addEventListener('click', () => {
+      opener = tile;
+      render(position);
+      viewer.showModal();
+    }));
+
+    viewer.querySelector('[data-close]')?.addEventListener('click', () => viewer.close());
+    viewer.querySelector('[data-prev]')?.addEventListener('click', () => render(index - 1));
+    viewer.querySelector('[data-next]')?.addEventListener('click', () => render(index + 1));
+    viewer.addEventListener('close', () => opener?.focus());
+    viewer.addEventListener('click', (event) => {
+      if (event.target === viewer) viewer.close();
+    });
+    viewer.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        render(index + (event.key === 'ArrowRight' ? 1 : -1));
+      }
+    });
+  }
+</script>

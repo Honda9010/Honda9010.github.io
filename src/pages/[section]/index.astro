@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import { getJournal, sectionNames, type Section } from '../../lib/content';
+
+export function getStaticPaths() {
+  return (Object.keys(sectionNames) as Section[]).map((section) => ({ params: { section }, props: { section } }));
+}
+
+const { section } = Astro.props;
+const { stories, albumsById } = await getJournal();
+const entries = stories.filter((story) => story.data.section === section);
+const title = sectionNames[section];
+const description = section === 'travel' ? '从一组照片开始，读沿途的故事。' : '记下旅行之外的日常与感想。';
+---
+
+<SiteLayout {title} {description}>
+  <section class="shell page-section">
+    <header class="page-heading"><h1>{title}</h1><p>{description}</p></header>
+    {entries.length > 0 ? <div class="story-grid">
+      {entries.map((story) => <StoryCard {story} album={story.data.album && albumsById.get(story.data.album.id)} />)}
+    </div> : <p>文章将在这里陆续更新。</p>}
+  </section>
+</SiteLayout>

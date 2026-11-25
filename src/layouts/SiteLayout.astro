@@ -1,0 +1,52 @@
+---
+import '@fontsource/cormorant-garamond/600.css';
+import '../styles/global.css';
+import { siteName } from '../lib/content';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = '摄影、游记与随笔。' } = Astro.props;
+const pageTitle = title ? `${title} · ${siteName}` : siteName;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const navigation = [
+  { label: '摄影', href: '/photography/' },
+  { label: '游记', href: '/travel/' },
+  { label: '随笔', href: '/essays/' },
+  { label: '关于', href: '/about/' },
+  { label: '友情链接', href: '/links/' },
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f5ef" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">跳到正文</a>
+    <header class="site-header shell">
+      <a href="/" class="wordmark" aria-label={`${siteName}首页`}>
+        <span class="wordmark-icon" aria-hidden="true"></span>{siteName}
+      </a>
+      <nav aria-label="主导航">
+        {navigation.map(({ label, href }) => (
+          <a href={href} aria-current={Astro.url.pathname.startsWith(href) ? 'page' : undefined}>{label}</a>
+        ))}
+      </nav>
+    </header>
+    <main id="content"><slot /></main>
+    <footer class="site-footer shell">
+      <a href="/" class="wordmark">{siteName}</a>
+      <a href="/links/">友情链接 <span aria-hidden="true">↗</span></a>
+    </footer>
+  </body>
+</html>
